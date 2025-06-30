@@ -19,8 +19,11 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $token = $user->createToken('multi-app-token')->plainTextToken;
-
-            return response()->json(['token' => $token, 'user' => $user]);
+            Auth::login($user);
+            return redirect()->route('home')->with([
+                'token' => $token,
+                'user' => $user,
+            ]);
         }
 
         return response()->json(['message' => 'Invalid credentials'], 401);
