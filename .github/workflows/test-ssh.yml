@@ -1,4 +1,4 @@
-name: Test SSH Connection
+name: Test SSH Connectio
 
 on:
   workflow_dispatch:  # Allows manual run
@@ -33,3 +33,5 @@ jobs:
             echo "📋 Contents:"
             ls -la
             echo "🚀 Ready for deployment"
+
+            
