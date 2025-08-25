@@ -18,7 +18,7 @@ jobs:
             echo "✅ SSH Connection Successful!"
             echo "👤 Connected as: $(whoami)"
             echo "📁 Current directory: $(pwd)"
-            echo "📍 Your project path: /home/mybouma/test.mybouma.com"
+            echo "📍 Your project path: /home/riponcod/public_html"
             echo "🐧 Server info: $(uname -a)"
             
       - name: Test project directory access
@@ -30,7 +30,7 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
             echo "Checking your project directory..."
-            cd /home/mybouma/test.mybouma.com
+            cd /home/riponcod/public_html
             echo "✅ Directory exists!"
             echo "📋 Contents:"
             ls -la
