@@ -1,8 +1,10 @@
-name: Laravel CI TEST
+name: Laravel CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   laravel-tests:
@@ -16,49 +18,34 @@ jobs:
           MYSQL_DATABASE: laravel_test
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-          extensions: mbstring, bcmath, pdo_mysql
-          coverage: none
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, pdo, pdo_mysql, xml, ctype, json, tokenizer, gd
+        coverage: xdebug
 
-      - name: Cache Composer packages
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
+    - name: Copy .env
+      run: cp .env.example .env
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
 
-      - name: Setup .env
-        run: |
-          cp .env.example .env
-          php artisan key:generate
+    - name: Generate key
+      run: php artisan key:generate
 
-      # ✅ Wait for MySQL to be ready
-      - name: Wait for MySQL
-        run: |
-          until mysqladmin ping -hmysql -uroot -proot --silent; do
-            echo "Waiting for MySQL..."
-            sleep 5
-          done
+    - name: Create database
+      run: |
+        mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS laravel_test;"
 
-      - name: Run migrations
-        run: php artisan migrate --force
+    - name: Run migrations
+      run: php artisan migrate --force
 
-      - name: Run Tests
-        run: php artisan test
+    - name: Run tests
+      run: php artisan test
