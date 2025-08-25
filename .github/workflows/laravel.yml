@@ -8,7 +8,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:5.7
         ports:
           - 3306:3306
         env:
@@ -27,7 +27,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.1'
         extensions: mbstring, pdo, pdo_mysql, xml, ctype, json, tokenizer, gd
 
     - name: Configure environment
@@ -46,10 +46,6 @@ jobs:
     - name: Generate app key
       run: php artisan key:generate
 
-    - name: Wait for MySQL (optional but recommended)
-      run: |
-        # Simple wait - the health check should handle this, but extra safety
-        sleep 10
 
     - name: Run migrations
       run: php artisan migrate --force
