@@ -1,4 +1,4 @@
-name: Test SSH Connectio
+name: Test SSH Connection
 
 on:
   workflow_dispatch:  # Allows manual run
@@ -13,6 +13,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
             echo "✅ SSH Connection Successful!"
             echo "👤 Connected as: $(whoami)"
@@ -26,6 +27,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           script: |
             echo "Checking your project directory..."
             cd /home/mybouma/test.mybouma.com
@@ -33,5 +35,3 @@ jobs:
             echo "📋 Contents:"
             ls -la
             echo "🚀 Ready for deployment"
-
-            
