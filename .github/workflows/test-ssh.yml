@@ -1,4 +1,4 @@
-name: Test SSH Connectionn
+name: Test SSH Connection
 
 on:
   workflow_dispatch:  # Allows manual run
