@@ -48,12 +48,14 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          echo "DB_CONNECTION=mysql" >> .env
-          echo "DB_HOST=mysql" >> .env
-          echo "DB_PORT=3306" >> .env
-          echo "DB_DATABASE=laravel_test" >> .env
-          echo "DB_USERNAME=root" >> .env
-          echo "DB_PASSWORD=root" >> .env
+
+      # ✅ Wait for MySQL to be ready
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -hmysql -uroot -proot --silent; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
 
       - name: Run migrations
         run: php artisan migrate --force
