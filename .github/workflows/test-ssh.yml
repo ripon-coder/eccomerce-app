@@ -1,0 +1,35 @@
+name: Test SSH Connection
+
+on:
+  workflow_dispatch:  # Allows manual run
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test basic SSH connection
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "✅ SSH Connection Successful!"
+            echo "👤 Connected as: $(whoami)"
+            echo "📁 Current directory: $(pwd)"
+            echo "📍 Your project path: /home/mybouma/test.mybouma.com"
+            echo "🐧 Server info: $(uname -a)"
+            
+      - name: Test project directory access
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Checking your project directory..."
+            cd /home/mybouma/test.mybouma.com
+            echo "✅ Directory exists!"
+            echo "📋 Contents:"
+            ls -la
+            echo "🚀 Ready for deployment!"
