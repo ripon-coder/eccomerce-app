@@ -1,4 +1,4 @@
-name: Laravel CI TEST
+name: Laravel CI
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
@@ -54,6 +54,17 @@ jobs:
           echo "DB_DATABASE=laravel_test" >> .env
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=root" >> .env
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..15}; do
+            if mysqladmin ping -h mysql -uroot -proot --silent; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL... ($i)"
+            sleep 5
+          done
 
       - name: Run migrations
         run: php artisan migrate --force
