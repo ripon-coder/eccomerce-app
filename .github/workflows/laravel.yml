@@ -10,7 +10,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:5.2.0
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: laravel_test
@@ -33,14 +33,27 @@ jobs:
           extensions: mbstring, bcmath, pdo_mysql
           coverage: none
 
-      - name: Copy .env
-        run: cp .env.example .env
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Generate key
-        run: php artisan key:generate
+      - name: Setup .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=mysql" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=laravel_test" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=root" >> .env
 
       - name: Run migrations
         run: php artisan migrate --force
