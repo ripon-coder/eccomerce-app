@@ -1,35 +1,28 @@
 name: Test SSH Connection
 
 on:
-  workflow_dispatch:  # Allows manual run
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   test-ssh:
     runs-on: ubuntu-latest
     steps:
-      - name: Test basic SSH connection
+      - name: Test SSH connection and project directory
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          port: 22  # change if your SSH uses a different port
+          debug: true
           script: |
             echo "✅ SSH Connection Successful!"
             echo "👤 Connected as: $(whoami)"
             echo "📁 Current directory: $(pwd)"
             echo "📍 Your project path: /home/riponcod/public_html"
             echo "🐧 Server info: $(uname -a)"
-            
-      - name: Test project directory access
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
-          script: |
-            echo "Checking your project directory..."
+            echo "Checking project directory..."
             cd /home/riponcod/public_html
             echo "✅ Directory exists!"
             echo "📋 Contents:"
