@@ -1,54 +1,87 @@
-name: Laravel MySQL Test
+name: Laravel CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
 
 jobs:
-  test:
+  laravel-tests:
     runs-on: ubuntu-latest
 
     services:
       mysql:
         image: mysql:5.7
-        ports:
-          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
+          MYSQL_DATABASE: laravel_test
+        ports:
+          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -uroot -proot"
+          --health-cmd="mysqladmin ping -hmysql -uroot -proot --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-        extensions: mbstring, pdo, pdo_mysql, xml, ctype, json, tokenizer, gd
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: mbstring, bcmath, pdo, pdo_mysql, xml, ctype, json, tokenizer, gd
+          coverage: none
 
-    - name: Configure environment
-      run: |
-        cp .env.example .env
-        echo "DB_CONNECTION=mysql" >> .env
-        echo "DB_HOST=127.0.0.1" >> .env
-        echo "DB_PORT=3306" >> .env
-        echo "DB_DATABASE=test_db" >> .env
-        echo "DB_USERNAME=root" >> .env
-        echo "DB_PASSWORD=root" >> .env
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --optimize-autoloader
 
-    - name: Generate app key
-      run: php artisan key:generate
+      # Setup dedicated testing environment
+      - name: Setup .env.testing
+        run: |
+          cp .env.example .env.testing
+          php artisan key:generate --ansi
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: mysql
+          DB_PORT: 3306
+          DB_DATABASE: laravel_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
 
+      # Wait for MySQL to be ready
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -hmysql -uroot -proot --silent; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
 
-    - name: Run migrations
-      run: php artisan migrate --force
+      # Run migrations using testing env
+      - name: Run migrations
+        run: php artisan migrate --force --env=testing
 
-    - name: Run tests
-      run: php artisan test
+      # Run backend tests using testing env
+      - name: Run Tests
+        run: php artisan test --env=testing
+
+      # Optional: frontend build if using Laravel Mix or Vite
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build frontend assets
+        run: npm run build
