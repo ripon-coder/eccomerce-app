@@ -1,28 +1,24 @@
-name: Laravel CI with MySQL
+name: Laravel MySQL Test
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
-  laravel-tests:
+  test:
     runs-on: ubuntu-latest
 
     services:
       mysql:
         image: mysql:8.0
+        ports:
+          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: laravel_test
+          MYSQL_DATABASE: test_db
         options: >-
           --health-cmd="mysqladmin ping -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-        ports:
-          - 3306:3306
 
     steps:
     - name: Checkout code
@@ -31,34 +27,29 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
+        php-version: '8.2'
         extensions: mbstring, pdo, pdo_mysql, xml, ctype, json, tokenizer, gd
-        coverage: xdebug
 
-    - name: Create .env file
+    - name: Configure environment
       run: |
         cp .env.example .env
         echo "DB_CONNECTION=mysql" >> .env
         echo "DB_HOST=127.0.0.1" >> .env
         echo "DB_PORT=3306" >> .env
-        echo "DB_DATABASE=laravel_test" >> .env
+        echo "DB_DATABASE=test_db" >> .env
         echo "DB_USERNAME=root" >> .env
         echo "DB_PASSWORD=root" >> .env
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Generate application key
+    - name: Generate app key
       run: php artisan key:generate
 
-    - name: Wait for MySQL to be ready
+    - name: Wait for MySQL (optional but recommended)
       run: |
-        sudo apt-get install -y netcat
-        echo "Waiting for MySQL to be ready..."
-        while ! nc -z 127.0.0.1 3306; do
-          sleep 2
-        done
-        echo "MySQL is ready!"
+        # Simple wait - the health check should handle this, but extra safety
+        sleep 10
 
     - name: Run migrations
       run: php artisan migrate --force
