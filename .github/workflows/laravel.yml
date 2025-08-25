@@ -58,14 +58,6 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
 
-      # Wait for MySQL to be ready
-      - name: Wait for MySQL
-        run: |
-          until mysqladmin ping -hmysql -uroot -proot --silent; do
-            echo "Waiting for MySQL..."
-            sleep 5
-          done
-
       # Run migrations using testing env
       - name: Run migrations
         run: php artisan migrate --force --env=testing
