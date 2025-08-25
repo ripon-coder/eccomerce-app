@@ -32,4 +32,4 @@ jobs:
             echo "✅ Directory exists!"
             echo "📋 Contents:"
             ls -la
-            echo "🚀 Ready for deployment!"
+            echo "🚀 Ready for deployment"
